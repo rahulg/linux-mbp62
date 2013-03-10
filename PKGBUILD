@@ -25,7 +25,7 @@ md5sums=('83a522998c19b8c14793b4815714f959'
          '03b1dad90f3558dba3031901398c1ca4'
          'eb14dcfd80c00852ef81ded6e826826a'
          '9d3c56a4b999c8bfbd4018089a62f662'
-         '0f3ae02234b066ad050415d2629c244d')
+         'bcba49ff6e55037c5a8fbf6029f6325e')
 
 _kernelname=${pkgname#linux}
 
