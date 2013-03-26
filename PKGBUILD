@@ -1,12 +1,12 @@
-# $Id: PKGBUILD 178913 2013-02-28 18:41:03Z tpowa $
+# $Id: PKGBUILD 178914 2013-02-28 18:41:03Z tpowa $
 # Maintainer: Tobias Powalowski <tpowa@archlinux.org>
 # Maintainer: Thomas Baechler <thomas@archlinux.org>
 
 pkgname=linux-mainline
 #pkgbase=linux               # Build stock -ARCH kernel
 #pkgbase=linux-custom       # Build kernel with a different name
-_srcname=linux-3.9-rc1
-pkgver=3.9rc1
+_srcname=linux-3.9-rc4
+pkgver=3.9rc4
 pkgrel=1
 arch=('i686' 'x86_64')
 url="http://www.kernel.org/"
@@ -20,7 +20,7 @@ source=("http://www.kernel.org/pub/linux/kernel/v3.x/testing/${_srcname}.tar.xz"
         'linux.preset'
         'change-default-console-loglevel.patch'
         'mbp62.patch')
-md5sums=('83a522998c19b8c14793b4815714f959'
+md5sums=('f42655ea17db353bb36f6ac288d64c11'
          '307107a8b15060e6fc0e48bdaacaed06'
          '03b1dad90f3558dba3031901398c1ca4'
          'eb14dcfd80c00852ef81ded6e826826a'
@@ -51,6 +51,8 @@ build() {
   # (relevant patch sent upstream: https://lkml.org/lkml/2011/7/26/227)
   patch -Np1 -i "${srcdir}/change-default-console-loglevel.patch"
 
+  patch -Np1 -i "${srcdir}/mbp62.patch"
+
   if [ "${CARCH}" = "x86_64" ]; then
     cat "${srcdir}/config.x86_64" > ./.config
   else
@@ -67,8 +69,6 @@ build() {
 
   # don't run depmod on 'make install'. We'll do this ourselves in packaging
   sed -i '2iexit 0' scripts/depmod.sh
-
-  patch -Np1 -i "${srcdir}/mbp62.patch"
 
   # get kernel version
   #make prepare

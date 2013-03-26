@@ -10,10 +10,10 @@ This package uses the linux-mainline [AUR package](https://aur.archlinux.org/pac
 
 # Arch Linux Users #
 
-Either grab the package from the prebuilt folder and install with `# pacman -S linux-mainline-3.9rc1-1-x86_64.pkg.tar.xz` or build the package yourself using `makepkg -s`.
+Either grab the package from the prebuilt folder and install with `# pacman -S linux-mainline-3.9rc4-1-x86_64.pkg.tar.xz` or build the package yourself using `makepkg -s`.
 
 # <Insert Distro Here> Users #
 
-If you're fine compiling your own kernel, get the 3.9rc1 tarball from the usual sources and apply `mbp62.patch`.  
+If you're fine compiling your own kernel, get the 3.9rc4 tarball from the usual sources and apply `mbp62.patch`.  
 If you're feeling lazy, you could extract the kernel, modules, and headers from the `*.pkg.tar.xz` and stick them in the right places.  
 If you're a linux newbie, I'd suggest asking for help on your distribution's forums/subreddit.
