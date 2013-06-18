@@ -1,17 +1,17 @@
-# $Id: PKGBUILD 178914 2013-02-28 18:41:03Z tpowa $
+# $Id: PKGBUILD 188067 2013-06-08 08:17:48Z tpowa $
 # Maintainer: Tobias Powalowski <tpowa@archlinux.org>
 # Maintainer: Thomas Baechler <thomas@archlinux.org>
 
 pkgname=linux-mainline
 #pkgbase=linux               # Build stock -ARCH kernel
 #pkgbase=linux-custom       # Build kernel with a different name
-_srcname=linux-3.9-rc4
-pkgver=3.9rc4
+_srcname=linux-3.10-rc5
+pkgver=3.10rc5
 pkgrel=1
 arch=('i686' 'x86_64')
 url="http://www.kernel.org/"
 license=('GPL2')
-makedepends=('xmlto' 'docbook-xsl' 'bc')
+makedepends=('xmlto' 'docbook-xsl' 'kmod' 'inetutils' 'bc')
 options=('!strip')
 source=("http://www.kernel.org/pub/linux/kernel/v3.x/testing/${_srcname}.tar.xz"
         # the main kernel config files
@@ -20,11 +20,11 @@ source=("http://www.kernel.org/pub/linux/kernel/v3.x/testing/${_srcname}.tar.xz"
         'linux.preset'
         'change-default-console-loglevel.patch'
         'mbp62.patch')
-md5sums=('f42655ea17db353bb36f6ac288d64c11'
-         '307107a8b15060e6fc0e48bdaacaed06'
-         '03b1dad90f3558dba3031901398c1ca4'
+md5sums=('153cd6a257d65f7ce2adfdbbda7d7ffc'
+         '1eb73dcb091d2671138f87fe62bd9735'
+         '24dff05a9f8d53e92457077e6ca6b6ae'
          'eb14dcfd80c00852ef81ded6e826826a'
-         '9d3c56a4b999c8bfbd4018089a62f662'
+         'f3def2cefdcbb954c21d8505d23cc83c'
          'bcba49ff6e55037c5a8fbf6029f6325e')
 
 _kernelname=${pkgname#linux}
@@ -40,8 +40,17 @@ replaces=("kernel26${_kernelname}")
 backup=("etc/mkinitcpio.d/${pkgname}.preset")
 install=linux.install
 
-build() {
+# module.symbols md5sums
+# x86_64
+# 3257a59402459dcc9e6f6ddd0144c385  /lib/modules/3.9.4-1-ARCH/modules.symbols
+# i686
+# bc0b5eb05278fcfa92250373217eaca1  /lib/modules/3.9.4-1-ARCH/modules.symbols
+
+prepare() {
   cd "${srcdir}/${_srcname}"
+
+  # add upstream patch
+   #patch -p1 -i "${srcdir}/patch-${pkgver}"
 
   # add latest fixes from stable queue, if needed
   # http://git.kernel.org/?p=linux/kernel/git/stable/stable-queue.git
@@ -50,7 +59,6 @@ build() {
   # remove this when a Kconfig knob is made available by upstream
   # (relevant patch sent upstream: https://lkml.org/lkml/2011/7/26/227)
   patch -Np1 -i "${srcdir}/change-default-console-loglevel.patch"
-
   patch -Np1 -i "${srcdir}/mbp62.patch"
 
   if [ "${CARCH}" = "x86_64" ]; then
@@ -69,6 +77,10 @@ build() {
 
   # don't run depmod on 'make install'. We'll do this ourselves in packaging
   sed -i '2iexit 0' scripts/depmod.sh
+}
+
+build() {
+  cd "${srcdir}/${_srcname}"
 
   # get kernel version
   #make prepare
@@ -86,11 +98,12 @@ build() {
   yes "" | make config >/dev/null
 
   # save configuration for later reuse
-  if [ "${CARCH}" = "x86_64" ]; then
-    cat .config > "${startdir}/config.x86_64.last"
-  else
-    cat .config > "${startdir}/config.last"
-  fi
+  # mainline: Disabled for now
+  #if [ "${CARCH}" = "x86_64" ]; then
+  #  cat .config > "${startdir}/config.x86_64.last"
+  #else
+  #  cat .config > "${startdir}/config.last"
+  #fi
 
   ####################
   # stop here
@@ -136,14 +149,16 @@ _package() {
   # add vmlinux
   install -D -m644 vmlinux "${pkgdir}/usr/src/linux-${_kernver}/vmlinux"
 
-  # install fallback mkinitcpio.conf file and preset file for kernel
-  install -D -m644 "${srcdir}/linux.preset" "${pkgdir}/etc/mkinitcpio.d/${pkgname}.preset"
-
   # set correct depmod command for install
+  cp -f "${startdir}/${install}" "${startdir}/${install}.pkg"
+  true && install=${install}.pkg
   sed \
     -e  "s/KERNEL_NAME=.*/KERNEL_NAME=${_kernelname}/" \
     -e  "s/KERNEL_VERSION=.*/KERNEL_VERSION=${_kernver}/" \
-    -i "${startdir}/linux.install"
+    -i "${startdir}/${install}"
+
+  # install mkinitcpio preset file for kernel
+  install -D -m644 "${srcdir}/linux.preset" "${pkgdir}/etc/mkinitcpio.d/${pkgbase}.preset"
   sed \
     -e "1s|'linux.*'|'${pkgname}'|" \
     -e "s|ALL_kver=.*|ALL_kver=\"/boot/vmlinuz-${pkgname}\"|" \
@@ -308,7 +323,7 @@ _package-headers() {
   done
 
   # remove unneeded architectures
-  rm -rf "${pkgdir}"/usr/src/linux-${_kernver}/arch/{alpha,arm,arm26,avr32,blackfin,c6x,cris,frv,h8300,hexagon,ia64,m32r,m68k,m68knommu,mips,microblaze,mn10300,openrisc,parisc,powerpc,ppc,s390,score,sh,sh64,sparc,sparc64,tile,unicore32,um,v850,xtensa}
+  rm -rf "${pkgdir}"/usr/src/linux-${_kernver}/arch/{alpha,arc,arm,arm26,avr32,blackfin,c6x,cris,frv,h8300,hexagon,ia64,m32r,m68k,m68knommu,metag,mips,microblaze,mn10300,openrisc,parisc,powerpc,ppc,s390,score,sh,sh64,sparc,sparc64,tile,unicore32,um,v850,xtensa}
 }
 
 _package-docs() {
